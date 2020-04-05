@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using SampleApi.Filters;
 using SampleApi.Models;
 using SampleApi.Repositories;
 using SampleApi.Requests;
@@ -14,6 +13,7 @@ namespace SampleApi.Controllers
 {
     [Route("api/order")]
     [ApiController]
+    [TypeFilter(typeof(CustomExceptionAttribute))]
     public class OrderController : ControllerBase
     {
         private readonly IOrderRepository _orderRepository;
@@ -27,11 +27,15 @@ namespace SampleApi.Controllers
         [HttpGet]
         public IActionResult Get()
         {
+            var a = 1;
+            var b = 0;
+            int result = a / b;
             return Ok(Map(_orderRepository.Get()));
         }
 
         // hostname/api/order/<guid>
         [HttpGet("{id:guid}")]
+        [OrderExists]
         public IActionResult GetById(Guid id)
         {
             return Ok(_orderRepository.Get(id));
@@ -52,6 +56,7 @@ namespace SampleApi.Controllers
 
         // hostname/api/order/<guid>
         [HttpPut("id:guid")]
+        [OrderExists]
         public IActionResult Put(Guid id, OrderRequest request)
         {
             /*
@@ -59,13 +64,14 @@ namespace SampleApi.Controllers
              * Não apenas algumas propriedades e sim todas elas.
              */
 
-            var order = _orderRepository.Get(id);
-
             if (request.ItemsIds == null)
                 return BadRequest();
+
+            var order = _orderRepository.Get(id);            
             
-            if (order == null)
-                return NotFound(new { Message = $"Item with id {id} not exist." });
+            // substituido pelo action filter OrderExists
+            //if (order == null)
+            //    return NotFound(new { Message = $"Item with id {id} not exist." });
 
             order = Map(request, order);
 
@@ -75,18 +81,21 @@ namespace SampleApi.Controllers
 
         // hostname/api/order/<guid>
         [HttpDelete("{id:guid}")]
+        [OrderExists]
         public IActionResult Delete(Guid id)
         {
             var order = _orderRepository.Get(id);
 
-            if (order == null)
-                return NotFound(new { Message = $"Item with id {id} not exist." });
+            // substituido pelo action filter OrderExists
+            //if (order == null)
+            //    return NotFound(new { Message = $"Item with id {id} not exist." });
 
             _orderRepository.Delete(id);
             return NoContent();
         }
 
         [HttpPatch("{id:guid}")]
+        [OrderExists]
         public IActionResult Patch(Guid id, JsonPatchDocument<Order> requestOp)
         {
             /*
@@ -97,8 +106,9 @@ namespace SampleApi.Controllers
 
             var order = _orderRepository.Get(id);
 
-            if (order == null)
-                return NotFound(new { Message = $"Item with id {id} not exist." });
+            // substituido pelo action filter OrderExists
+            //if (order == null)
+            //    return NotFound(new { Message = $"Item with id {id} not exist." });
 
             requestOp.ApplyTo(order);
             _orderRepository.Update(id, order);

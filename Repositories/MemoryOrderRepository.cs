@@ -30,8 +30,11 @@ namespace SampleApi.Repositories
 			return target;
 		}
 
-		public IEnumerable<Order> Get() => _orders
+		public IEnumerable<Order> Get()
+		{
+			return _orders
 			.Where(p => !p.IsInactive).ToList();
+		}		
 
 		public Order Get(Guid orderid)
 		{
